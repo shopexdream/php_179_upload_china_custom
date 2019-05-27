@@ -1,0 +1,75 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<script type="text/javascript" src="./jquery.js"></script>
+	<script type="text/javascript" src="./json2.js"></script>
+<script type="text/javascript" src="./client.js?d=2018-12-19_16:00:00"></script>
+<script type="text/javascript">
+function SignDataAsPem(){
+	EportClient.isInstalledTest(EportClient.cusSpcSignDataAsPEM,
+			document.getElementById("txt1").value,"88888888",function(msg,msgJson){
+		console.log(JSON.stringify(msg));
+		document.getElementById("txt2").value=JSON.stringify(msg);
+		push_signvalue_to_server();//推送给web服务器
+	});
+}
+var Interval=5000;//每5s跑一次
+setInterval("pull_sign_order()",intval);
+pull_sign_order();
+/*从web服务器拉取待加签订单*/
+function pull_sign_order(){
+	console.log('begin:'+new Date().toLocaleTimeString());
+	$.ajax({
+		'url':'https://您的网站地址/declare-getChouchTastList.html',//获取待加签任务txt
+		 'method':'get',
+		 'success':function(res){
+			if(res && res.indexOf('.lock')<0){
+				//有值，且找不到.lock
+				var resRs=res.split('$$$$$$$');
+				var file_name=resRs[0];//文件名
+				var tosign=resRs[1];//待加签文本
+				if(tosign){
+					$('#file_name').val(file_name);
+					$('#txt1').val(tosign);
+					console.log('tosign',tosign);
+					SignDataAsPem();//加签
+				}
+			}
+			 else{
+				console.log('no order to push or web server has .lock','');
+			}
+		}
+	})
+}
+/*推送加签签名给web服务器*/
+function push_signvalue_to_server(){
+	var data={
+		'file_name':$('#file_name').val(),
+		'toSign':$('#txt1').val(),
+		'signValue':$('#txt2').val(),
+	};
+	console.log('push_signvalue_to_server:data',data)
+	$.ajax({
+		'url':'https://您的网站地址/declare-uploadSignValue.html',//上传签名到 web服务器，同时请求海关的真正上传接口
+		'type':'post',
+		'data':data,
+		'success':function(res){
+			console.log('push_signvalue_to_server:res',res);
+			console.log('end:'+new Date().toLocaleTimeString());
+		}
+	})
+}
+</script>
+<title>首页</title>
+</head>
+<body>
+    <h1>请求成功</h1>
+	<textarea rows="30" cols="60" id="file_name"></textarea>
+
+	<textarea rows="30" cols="60" id="txt1"></textarea>
+    <textarea rows="30" cols="60" id="txt2"></textarea>
+    <button onclick="SignDataAsPem()">加签</button>
+</body>
+</html>
