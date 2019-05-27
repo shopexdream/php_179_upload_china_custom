@@ -1,0 +1,37 @@
+工作流程：
+1、海关请求我们的 网站服务器179服务地址
+http://***/delcare-platDataOpen.html
+
+写入待加签报文到 data/in/文件名.txt
+增加.lock锁文件
+
+2、轮询服务器 轮询
+http://***/delcare-getChouchTastList.html
+
+3、js加签完成后，ajax请求 网站服务器的请求海关的服务
+http://***/delcare-uploadSignValue.html
+
+（
+拼接payExInfoStr报文，并curl请求海关的地址https://customs.chinaport.gov.cn/ceb2grab/grab/realTimeDataUpload
+同时删除已加签的文件到 data/out/
+删除.lock锁文件
+）
+
+
+
+=============================
+部署：
+1、将 轮询服务 部署到和usbkey在一起的win服务器上。
+（怎么弄？建立一个www服务器，可以直接用phpstudy，然后把轮询服务.rar里的文件解压到phpstudy里www目录下，然后打开浏览器 上，访问 http://127.0.0.1/，可以看到3个输入框就对了，就这样一直开着，不要关）
+
+这样ajax轮询服务就开始工作了
+
+2、修改你的网站端的代码
+
+增加上述流程里的几个重要方法
+
+http://***/delcare-platDataOpen.html
+http://***/delcare-getChouchTastList.html
+http://***/delcare-uploadSignValue.html
+
+==================
